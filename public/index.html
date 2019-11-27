@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>My Long Polling Blog</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+          integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+</head>
+<body ng-app="blogApp" ng-controller="blogCtrl">
+
+<div class="jumbotron text-center">
+    <h1>My First Long Polling Blog</h1>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div ng-repeat="post in posts" class="col-md-6">
+            <div class="card mb-3">
+                <div class="row no-gutters">
+                    <div class="col-md-4">
+                        <img src="https://picsum.photos/id/1072/200/250" class="card-img">
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ post.title }}</h5>
+                            <p class="card-text">{{ post.description }}</p>
+                            <p class="card-text">
+                                <i style="color: red" class="fas fa-heart"></i>
+                                <span>{{post.likes}}</span>
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var app = angular.module('blogApp', []);
+    app.controller('blogCtrl', function ($scope, $http) {
+        $scope.initialize = function () {
+            $scope.get_all_posts();
+        };
+        $scope.get_all_posts = function () {
+            $http.get("/post")
+                .then(function (response) {
+                    $scope.posts = response.data;
+                    $scope.get_changes();
+                });
+        };
+
+        $scope.get_changes = function () {
+            $http.get("/changes")
+                .then(function (response) {
+                    if (response.data.length){
+                        $scope.posts = response.data;
+                    }
+                    $scope.get_changes();
+                });
+        };
+
+        $scope.initialize();
+    });
+</script>
+</body>
+</html>
