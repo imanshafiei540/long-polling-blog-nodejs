@@ -22,7 +22,7 @@
     <div class="row">
         <div class="col-md-1"></div>
         <div class="col-md-10">
-            <form ng-submit="create_post()">
+            <form>
                 <div class="form-group">
                     <label>Post Title</label>
                     <input ng-model="new_post_data.post.title" type="text" class="form-control"
@@ -32,15 +32,23 @@
                     <label>Post description</label>
                     <textarea ng-model="new_post_data.post.description" rows="12" class="form-control"></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary">Create Post</button>
+                <button ng-click="create_post()" ng-show="is_create" type="submit" class="btn btn-primary">Create Post</button>
+                <button ng-click="update_post()" ng-hide="is_create" type="submit" class="btn btn-primary">Update Post</button>
             </form>
         </div>
     </div>
 </div>
 <script>
     var app = angular.module('adminApp', []);
-    app.controller('adminCtrl', function ($scope, $http) {
+    app.config(['$locationProvider', function($locationProvider) { $locationProvider.html5Mode({ enabled: true, requireBase: false }); }]);
+    app.controller('adminCtrl', function ($scope, $http, $location) {
         $scope.initialize = function () {
+            $scope.post_id = $location.search().post_id;
+            $scope.is_create = true;
+            if ($scope.post_id){
+                $scope.is_create = false;
+                $scope.get_post();
+            }
             $scope.new_post_data = {
                 "post": {
                     "title": "",
@@ -53,6 +61,23 @@
             $http.post("/post", $scope.new_post_data, {headers: {'Content-Type': 'application/json'}})
                 .then(function (response) {
 
+                });
+        };
+
+        $scope.update_post = function () {
+            $http.put("/post", $scope.new_post_data, {headers: {'Content-Type': 'application/json'}})
+                .then(function (response) {
+
+                });
+        };
+
+        $scope.get_post = function () {
+            $http.get("/post/" + $scope.post_id)
+                .then(function (response) {
+                    var rec = response.data;
+                    $scope.new_post_data.post.post_id = rec._id;
+                    $scope.new_post_data.post.title = rec.title;
+                    $scope.new_post_data.post.description = rec.description;
                 });
         };
 

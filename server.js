@@ -47,9 +47,9 @@ app.post('/post', function (req, res) {
             if (err) throw err;
             console.log("1 document inserted");
             db.close();
+            sendChanges();
         });
     });
-    sendChanges();
     respondJSON(res, 200);
 });
 
@@ -65,24 +65,55 @@ app.get('/post', function (req, res) {
     });
 });
 
+app.get('/post/:post_id', function (req, res) {
+    MongoClient.connect(url, function (err, db) {
+        var post_id = req.params.post_id;
+        if (err) throw err;
+        var dbo = db.db("mydb");
+        dbo.collection("posts").findOne({_id: ObjectId(post_id)}, function (err, result) {
+            if (err) throw err;
+            respondJSON(res, 200, result);
+            db.close();
+        });
+    });
+});
+
+app.get('/like/:post_id', function (req, res) {
+    MongoClient.connect(url, function (err, db) {
+        var post_id = req.params.post_id;
+        if (err) throw err;
+        var dbo = db.db("mydb");
+        var myquery = {_id: ObjectId(post_id)};
+        var newvalues = {$inc: {likes: 1}};
+        dbo.collection("posts").updateOne(myquery, newvalues, function (err, result) {
+            if (err) throw err;
+            db.close();
+            sendChanges();
+        });
+    });
+    respondJSON(res, 200);
+});
+
 app.put('/post', function (req, res) {
     MongoClient.connect(url, function (err, db) {
         if (err) throw err;
         var dbo = db.db("mydb");
         var myquery = {_id: ObjectId(req.body.post.post_id)};
         var newvalues = {$set: {title: req.body.post.title, description: req.body.post.description}};
+        console.log(newvalues);
         dbo.collection("posts").updateOne(myquery, newvalues, function (err, res) {
-            console.log(res);
             if (err) throw err;
             console.log("1 document updated");
             db.close();
+            sendChanges();
         });
         respondJSON(res, 200);
     });
 });
 
 app.get('/changes', function (req, res) {
-    waitForChanges(res);
+    console.log("In Here!");
+    return waitForChanges(res);
 });
 
 function waitForChanges(response) {
@@ -101,7 +132,7 @@ function waitForChanges(response) {
 
 function sendChanges() {
     while (waitingRequests.length > 0) {
-        var request = waitingRequests.shift();
+        let request = waitingRequests.shift();
         MongoClient.connect(url, function (err, db) {
             if (err) throw err;
             var dbo = db.db("mydb");

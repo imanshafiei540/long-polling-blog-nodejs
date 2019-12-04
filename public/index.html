@@ -31,9 +31,12 @@
                             <h5 class="card-title">{{ post.title }}</h5>
                             <p class="card-text">{{ post.description }}</p>
                             <p class="card-text">
-                                <i style="color: red" class="fas fa-heart"></i>
+                                <a href="" ng-click="do_like(post._id)"><i style="color: red" class="fas fa-heart"></i></a>
                                 <span>{{post.likes}}</span>
                             </p>
+                            <a ng-href="/admin?post_id={{post._id}}" target="_blank" class="card-text">
+                                <i class="fas fa-edit"></i>
+                            </a>
                         </div>
 
                     </div>
@@ -59,10 +62,17 @@
         $scope.get_changes = function () {
             $http.get("/changes")
                 .then(function (response) {
-                    if (response.data.length){
+                    if (response.data.length) {
                         $scope.posts = response.data;
                     }
                     $scope.get_changes();
+                });
+        };
+
+        $scope.do_like = function (post_id) {
+            $http.get("/like/" + post_id)
+                .then(function (response) {
+
                 });
         };
 
